@@ -5,9 +5,31 @@ description = "Triton pretask for PLCT."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "jaxtyping>=0.2.34",
+    "numpy>=2.1.3",
     "torch>=2.5.1",
     "triton>=3.1.0",
 ]
+tool.uv.package = false
 
 [tool.uv]
 index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+dev-dependencies = [
+    "pytest>=8.3.3",
+]
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+python_classes = ["Test*", "*Test"]
+python_functions = ["test_*"]
+
+addopts = [
+    "--verbose",           # 详细输出
+    "--capture=no",        # 允许打印输出
+    "--exitfirst",         # 首次失败时停止
+    "--showlocals",        # 显示本地变量
+    "--durations=5",       # 显示最慢的5个测试
+    "--tb=short",          # 简短的错误回溯
+]
+
+testpaths = ["Triton"]
