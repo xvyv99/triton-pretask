@@ -3,6 +3,10 @@ import torch
 import triton
 import triton.language as tl
 
+"""
+v0 版本的向量化矩阵相乘, 且存在问题:
+- K 必须是2的幂次, 且没分块, 同时还必须得是 tl.constexpr 类型
+"""
 @triton.jit
 def matmul_kernel_v0(
         a_ptr, b_ptr, c_ptr, 
@@ -35,7 +39,7 @@ def matmul_kernel_v0(
     C_batch = tl.dot(A_batch, B_batch)
     tl.store(off_Cij+c_ptr, C_batch, mask_Cij)
 
-def matmul_triton_v1(A: Tensor, B:Tensor) -> Tensor:
+def matmul_triton_v0(A: Tensor, B:Tensor) -> Tensor:
     assert A.is_cuda and B.is_cuda
     M, K = A.shape
     K_1, N = B.shape
@@ -52,5 +56,5 @@ if __name__ == '__main__':
     a = torch.randn((45, 64), device='cuda')
     b = torch.randn((64, 38), device='cuda')
     ans = a @ b
-    res = matmul_triton_v1(a, b)
+    res = matmul_triton_v0(a, b)
     print(torch.max(torch.abs(res-ans)))
