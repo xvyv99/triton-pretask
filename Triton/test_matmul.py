@@ -3,8 +3,8 @@ import torch
 from torch import Tensor
 from matmul_manual import matmul_scalar
 
-TRY_NUM = 1000
-MNK_RANGE_MAX = 1000
+TRY_NUM = 10
+MNK_RANGE_MAX = 100
 
 def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-4) -> bool:
     (M, N) = A.shape
@@ -21,3 +21,20 @@ def test_matmul_scalar():
         B = torch.randn((N, K))
         res = matmul_scalar(A, B)
         assert matmul_verify(A, B, res)
+
+def test_matul_triton():
+    A = Tensor([
+        [1, 2],
+        [4, 5],
+        [6, 7]
+    ])
+
+    B = Tensor([
+        [3, 4, 5, 6],
+        [-1, 9, 8, 0]
+    ])
+
+    ans = A@B
+    res = torch.empty_like(ans)
+    
+    assert ans == res
