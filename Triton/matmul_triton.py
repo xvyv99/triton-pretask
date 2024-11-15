@@ -4,7 +4,7 @@ import triton
 import triton.language as tl
 
 """
-v1 版本的向量化矩阵相乘, 且存在问题:
+v1 版本的向量化矩阵相乘
 """
 @triton.jit
 def matmul_kernel(
@@ -23,8 +23,6 @@ def matmul_kernel(
     mask_Ai = off_Ai < M
     mask_Bj = off_Bj < N
 
-    #off_Aj = tl.arange(0, K)
-    #off_Bi = tl.arange(0, K)
     C_batch = tl.zeros((BM, BN), dtype=tl.float32)
     for b in tl.range(0, K, BK):
         off_Aj = b + tl.arange(0, BK)
@@ -56,8 +54,9 @@ def matmul_triton(A: Tensor, B:Tensor) -> Tensor:
     return C
 
 if __name__ == '__main__':
-    a = torch.randn((45, 64), device='cuda')
-    b = torch.randn((64, 38), device='cuda')
+    M, K, N = torch.randint(16, 64, (3,))
+    a = torch.randn((M, K), device='cuda')
+    b = torch.randn((K, N), device='cuda')
     ans = a @ b
     res = matmul_triton(a, b)
     print(torch.max(torch.abs(res-ans)))
