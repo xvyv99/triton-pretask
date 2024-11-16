@@ -19,6 +19,10 @@ def test_matmul_tirton():
         res = matmul_triton(A, B)
         matmul_verify(A, B, res)
 
+# 由于我写的标量矩阵乘法太慢了, 故缩小迭代范围
+TRY_NUM = 10
+MNK_RANGE_MIN = 16
+MNK_RANGE_MAX = 32
 def test_matmul_scalar():
     for t in trange(TRY_NUM):
         M, K, N = torch.randint(MNK_RANGE_MIN, MNK_RANGE_MAX, (3,))

@@ -7,6 +7,17 @@ from matplotlib.patches import Patch, Rectangle
 from typing import TypeAlias
 from matplotlib.axes import Axes
 
+from rich.console import Console
+
+def print_header(mid_text: str, style=None) -> None:
+    console = Console()
+    width = console.width
+    text_len = len(mid_text) + 2
+    padding = (width - text_len) // 2
+    line_f = "{} {} {}"
+    line = line_f.format("=" * padding, mid_text, "=" * (width - padding - text_len))
+    console.print(line, style=style)
+
 def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-4) -> None:
     """
     验证矩阵相乘结果的正确性
