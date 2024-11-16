@@ -1,11 +1,13 @@
 import torch
 from torch import Tensor
-from typing import TypeAlias
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch, Rectangle
+
+from typing import TypeAlias
 from matplotlib.axes import Axes
 
-def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-3) -> None:
+def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-4) -> None:
     """
     验证矩阵相乘结果的正确性
     """
@@ -20,7 +22,7 @@ def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-3) -> None:
         raise Exception(f"The maximum difference between matrix elements is {max_diff}, which exceeds the allowed threshold {tol:.2E}.")
 
 def check_detail(res: Tensor, ans: Tensor, 
-        i_batch_size=16, j_batch_size=16
+        i_batch_size=16, j_batch_size=16, tol=1E-4
     ) -> None:
     """
     用于可视化矩阵检验的结果
@@ -42,7 +44,7 @@ def check_detail(res: Tensor, ans: Tensor,
         for j in range(N):
             if res[i, j]==0:
                 null_points.append((j, i))
-            elif abs(res[i, j]-ans[i, j])<1E-4:
+            elif abs(res[i, j]-ans[i, j])<tol:
                 same_points.append((j, i))
 
     fig, ax = plt.subplots()

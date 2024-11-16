@@ -7,17 +7,28 @@ import triton.language as tl
 def matmul_kernel(
         a_ptr, b_ptr, c_ptr, 
         M, N, K, 
-        BM: tl.constexpr, BN: tl.constexpr, BK: tl.constexpr
+        BM: tl.constexpr, BN: tl.constexpr, BK: tl.constexpr,
+        GROUP_SIZE: tl.constexpr
     ):
     """
-    v1 版本的向量化矩阵相乘,
+    v2 版本的向量化矩阵相乘, 加了 L2
     """
     pid = tl.program_id(axis=0)
-    pid_num_Ci = tl.cdiv(M, BM) # 行方向的块数
-    pid_num_Cj = tl.cdiv(N, BN) # 列方向的块数
-    pid_Ci = pid // pid_num_Cj # 目前块所在行数
-    pid_Cj = pid % pid_num_Cj # 目前块所在列数
- 
+    num_Ci = tl.cdiv(M, BM) # 行方向的块数
+    num_Cj = tl.cdiv(N, BN) # 列方向的块数
+
+    num_group_blocks = GROUP_SIZE*num_Cj # 一组包含的程序数
+    pid_group_id = pid // num_group_blocks # 所在组的序号
+    pid_group_loc = pid % num_group_blocks # 所在组中的位置(序号)
+    # 组相当于对行再进行一次分块?
+    group_first_row = pid_group_id * GROUP_SIZE
+    group_size_cur = min(num_Ci - group_first_row, GROUP_SIZE)
+    # 相当于 mask, 不过看起来怪怪的, 除非是最后一个组否则都应该是 GROUP_SIZE
+    
+    pid_Ci = group_first_row + (pid_group_loc % group_size_cur)
+    # 这是因为同一组内块的创建是列主序的
+    pid_Cj = pid_group_loc // group_size_cur
+
     off_Ai = pid_Ci*BM + tl.arange(0, BM)
     off_Bj = pid_Cj*BN + tl.arange(0, BN)
     mask_Ai = off_Ai < M
@@ -50,5 +61,5 @@ def matmul_triton(A: Tensor, B:Tensor) -> Tensor:
     grid = lambda meta: (
         (triton.cdiv(M, meta['BM'])*(triton.cdiv(N, meta['BN']))), 
     )
-    matmul_kernel[grid](A, B, C, M, N, K, 16, 16, 16)
+    matmul_kernel[grid](A, B, C, M, N, K, 16, 16, 16, 16)
     return C
