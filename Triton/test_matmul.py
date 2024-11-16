@@ -1,8 +1,8 @@
-import pytest
 import torch
 from torch import Tensor
-from matmul_manual import matmul_scalar
-from matmul_triton import matmul_triton
+
+from matmul import matmul_triton, matmul_scalar
+
 from util import matmul_verify
 from tqdm import trange
 
@@ -25,6 +25,3 @@ def test_matmul_scalar():
         B = torch.randn((K, N))
         res = matmul_scalar(A, B)
         matmul_verify(A, B, res)
-
-if __name__ == '__main__':
-    test_matmul_tirton()

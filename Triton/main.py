@@ -1,3 +1,5 @@
+from matmul import matmul_triton
+
 def main() -> None:
     pass
 
