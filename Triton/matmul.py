@@ -2,15 +2,19 @@ from torch import Tensor
 import torch
 import triton
 import triton.language as tl
+from tqdm import tqdm
 
 def matmul_scalar(A: Tensor, B: Tensor) -> Tensor:
-    (M, K) = A.shape
-    (K, N) = B.shape
+    M, K = A.shape
+    K_1, N = B.shape
+    assert K==K_1, "Shape Error!"
     res = torch.zeros((M, N))
-    for i in range(0, M):
-        for j in range(0, N):
-            for k in range(0, K):
-                res[i, j] += A[i, k] * B[k, j]
+    with tqdm(total=M*N*K) as pbar:
+        for i in range(0, M):
+            for j in range(0, N):
+                for k in range(0, K):
+                    res[i, j] += A[i, k] * B[k, j]
+                    pbar.update(1)
     return res
 
 @triton.jit
@@ -21,7 +25,7 @@ def matmul_kernel(
         GROUP_SIZE: tl.constexpr
     ):
     """
-    v2 版本的向量化矩阵相乘, 加了 L2
+    v2 版本的向量化矩阵相乘, 加了 L2 优化
     """
     pid = tl.program_id(axis=0)
     num_Ci = tl.cdiv(M, BM) # 行方向的块数
@@ -71,5 +75,5 @@ def matmul_triton(A: Tensor, B:Tensor) -> Tensor:
     grid = lambda meta: (
         (triton.cdiv(M, meta['BM'])*(triton.cdiv(N, meta['BN']))), 
     )
-    matmul_kernel[grid](A, B, C, M, N, K, 16, 16, 16, 16)
+    matmul_kernel[grid](A, B, C, M, N, K, 32, 32, 32, 32)
     return C
