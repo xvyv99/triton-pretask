@@ -9,17 +9,19 @@ def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-3) -> None:
     """
     验证矩阵相乘结果的正确性
     """
-    (M, N) = A.shape
-    (N, K) = B.shape
-    assert (M, K) == res.shape, f"Shape incompatible! One has shape {(M, K)} and the other has shape {res.shape}."
+    (M, K) = A.shape
+    (K, N) = B.shape
+    assert (M, N) == res.shape, f"Shape incompatible! One has shape {(M, N)} and the other has shape {res.shape}."
 
     ans = A @ B
     max_diff = torch.max(torch.abs(ans-res))
     if max_diff>tol:
-        print(check_detail(res, ans))
+        check_detail(res, ans)
         raise Exception(f"The maximum difference between matrix elements is {max_diff}, which exceeds the allowed threshold {tol:.2E}.")
 
-def check_detail(res: Tensor, ans: Tensor) -> None:
+def check_detail(res: Tensor, ans: Tensor, 
+        i_batch_size=16, j_batch_size=16
+    ) -> None:
     """
     用于可视化矩阵检验的结果
     """
@@ -59,14 +61,24 @@ def check_detail(res: Tensor, ans: Tensor) -> None:
         Patch(facecolor='#2ca02c', label='Correct element'),
         Patch(facecolor='#ff7f0e', label='Wrong element')
     ]
-    ax.legend(handles=legend_elements)
+    ax.legend(
+        bbox_to_anchor=(1.05, 1), 
+        loc='upper left', 
+        handles=legend_elements
+    )
     ax.set_xlim(0, N)
     ax.set_ylim(M, 0)
+
+    ax.set_xticks(torch.arange(0, N, j_batch_size))
+    ax.set_yticks(torch.arange(0, M, i_batch_size))
+
 
     ax.set_xlabel("column direction")
     ax.set_ylabel("row direction")
     ax.set_title(f"{M}x{N} Matrix Check Result")
     ax.grid(True)
-
+    ax.set_aspect('equal')
+    
+    plt.tight_layout()
     plt.savefig('matrix_check.png', dpi=300)
     plt.close

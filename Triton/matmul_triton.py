@@ -12,12 +12,11 @@ def matmul_kernel(
     """
     v1 版本的向量化矩阵相乘,
     """
-    # TODO(xvyv99): 在某些尺寸上的矩阵存在问题
     pid = tl.program_id(axis=0)
-    pid_num_Ci = tl.cdiv(M, BM)
-    pid_num_Cj = tl.cdiv(N, BN)
-    pid_Ci = tl.cdiv(pid, pid_num_Ci)
-    pid_Cj = pid % pid_num_Ci 
+    pid_num_Ci = tl.cdiv(M, BM) # 行方向的块数
+    pid_num_Cj = tl.cdiv(N, BN) # 列方向的块数
+    pid_Ci = pid // pid_num_Cj # 目前块所在行数
+    pid_Cj = pid % pid_num_Cj # 目前块所在列数
  
     off_Ai = pid_Ci*BM + tl.arange(0, BM)
     off_Bj = pid_Cj*BN + tl.arange(0, BN)
@@ -53,11 +52,3 @@ def matmul_triton(A: Tensor, B:Tensor) -> Tensor:
     )
     matmul_kernel[grid](A, B, C, M, N, K, 16, 16, 16)
     return C
-
-if __name__ == '__main__':
-    M, K, N = torch.randint(16, 64, (3,))
-    a = torch.randn((M, K), device='cuda')
-    b = torch.randn((K, N), device='cuda')
-    ans = a @ b
-    res = matmul_triton(a, b)
-    print(torch.max(torch.abs(res-ans)))
