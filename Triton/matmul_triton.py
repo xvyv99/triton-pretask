@@ -3,20 +3,21 @@ import torch
 import triton
 import triton.language as tl
 
-"""
-v1 版本的向量化矩阵相乘
-"""
 @triton.jit
 def matmul_kernel(
         a_ptr, b_ptr, c_ptr, 
         M, N, K, 
         BM: tl.constexpr, BN: tl.constexpr, BK: tl.constexpr
     ):
+    """
+    v1 版本的向量化矩阵相乘,
+    """
+    # TODO(xvyv99): 在某些尺寸上的矩阵存在问题
     pid = tl.program_id(axis=0)
     pid_num_Ci = tl.cdiv(M, BM)
     pid_num_Cj = tl.cdiv(N, BN)
-    pid_Ci = pid // pid_num_Ci
-    pid_Cj = pid % pid_num_Ci
+    pid_Ci = tl.cdiv(pid, pid_num_Ci)
+    pid_Cj = pid % pid_num_Ci 
  
     off_Ai = pid_Ci*BM + tl.arange(0, BM)
     off_Bj = pid_Cj*BN + tl.arange(0, BN)

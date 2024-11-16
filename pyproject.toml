@@ -16,6 +16,7 @@ tool.uv.package = false
 [tool.uv]
 index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 dev-dependencies = [
+    "matplotlib>=3.9.2",
     "pytest>=8.3.3",
 ]
 
@@ -25,12 +26,12 @@ python_classes = ["Test*", "*Test"]
 python_functions = ["test_*"]
 
 addopts = [
-    "--verbose",           # 详细输出
-    "--capture=no",        # 允许打印输出
-    "--exitfirst",         # 首次失败时停止
-    "--showlocals",        # 显示本地变量
-    "--durations=5",       # 显示最慢的5个测试
-    "--tb=short",          # 简短的错误回溯
+    "--verbose",           
+    "--capture=no",        
+    "--exitfirst",
+    "--showlocals",
+    "--durations=5",
+    "--tb=short", 
 ]
 
 testpaths = ["Triton"]
