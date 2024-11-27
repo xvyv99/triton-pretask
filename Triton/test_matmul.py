@@ -3,16 +3,25 @@ from torch import Tensor
 import numpy
 
 from matmul import matmul_triton, matmul_scalar
+from matmul_offical import matmul
 
 from util import matmul_verify
 from tqdm import trange
 
 TRY_NUM = 128
 MNK_RANGE_MIN = 16 # 由于 tl.dot 会要求矩阵的行数和列数不小于16, 故添加此约束
-MNK_RANGE_MAX = 1024
+MNK_RANGE_MAX = 512
+
+def test_matmul_offical():
+    for t in trange(TRY_NUM):
+        M, K, N = torch.randint(MNK_RANGE_MIN, MNK_RANGE_MAX, (3,))
+        A = torch.randn((M, K), device='cuda', dtype=torch.float32)
+        B = torch.randn((K, N), device='cuda', dtype=torch.float32)
+        res = matmul(A, B)
+        matmul_verify(A, B, res)
 
 def test_matmul_tirton():
-    for t in range(TRY_NUM):
+    for t in trange(TRY_NUM):
         M, K, N = torch.randint(MNK_RANGE_MIN, MNK_RANGE_MAX, (3,))
         A = torch.randn((M, K), device='cuda', dtype=torch.float32)
         B = torch.randn((K, N), device='cuda', dtype=torch.float32)

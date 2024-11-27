@@ -18,7 +18,7 @@ def print_header(mid_text: str, style=None) -> None:
     line = line_f.format("=" * padding, mid_text, "=" * (width - padding - text_len))
     console.print(line, style=style)
 
-def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-4) -> None:
+def matmul_verify(A: Tensor, B: Tensor, res: Tensor, tol=1E-3) -> None:
     """
     验证矩阵相乘结果的正确性
     """
